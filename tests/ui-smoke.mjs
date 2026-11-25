@@ -302,8 +302,12 @@ globalThis.fetch = async (url, options = {}) => {
     )
   throw Error('Unexpected path: ' + url)
 }
+// Test giả lập fetch tại /meeting-api: bỏ qua VITE_MEETING_API_URL từ shell hoặc file .env
+// (trên server deploy file .env trỏ vào backend thật).
+delete process.env.VITE_MEETING_API_URL
 const vite = await createServer({
   root: process.cwd(),
+  envDir: new URL('.', import.meta.url).pathname,
   server: { middlewareMode: true, hmr: false, ws: false },
   appType: 'custom',
 })

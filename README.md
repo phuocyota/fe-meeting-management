@@ -73,3 +73,11 @@ Token LiveKit/admission chỉ giữ trong memory. Token tài khoản trong local
 Chưa có avatar, quên mật khẩu, khóa/xóa tài khoản, lên lịch, ghi hình, điểm danh hay lưu chat. Đổi loa phụ thuộc hỗ trợ audiooutput của trình duyệt; menu dùng thiết bị trình duyệt cung cấp. Chat chỉ tồn tại trong phiên; gia hạn kết nối reset chat, tắt mic/camera và cần chia sẻ màn hình lại. Backend luôn là nơi quyết định authorization.
 
 Các kiểm tra tự động dùng API/media mô phỏng. Cần xác minh với backend và LiveKit thật: hai tài khoản cùng khách, duyệt/kick/chuyển quyền, token expiry, media/WebRTC, TURN, quyền trình duyệt, CORS, responsive và SPA fallback. Không có kết quả E2E mạng/media thật từ DOM tests.
+
+## Deploy
+
+Trên server, trong thư mục repo: `npm run deploy` (pull, `npm ci`, kiểm tra `/health` của backend, lint + test, build vào `releases/<thời điểm>`, trỏ symlink `current` sang bản mới, giữ 5 bản). Quay lại bản trước: `npm run deploy -- --rollback`. Các biến tùy chọn được ghi ở đầu `deploy.sh`.
+
+- `VITE_MEETING_API_URL` lấy từ env hoặc `.env`/`.env.production` trên server; được nhúng lúc build.
+- nginx dùng `root <repo>/current;` và `location / { try_files $uri /index.html; }` cho route SPA.
+- Backend phải cho phép origin của FE trong `MEETING_CORS_ORIGIN`.
