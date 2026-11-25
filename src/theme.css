@@ -1,0 +1,983 @@
+/*
+ * Lớp hoàn thiện giao diện ICHI MEET, nạp sau cùng.
+ * Chỉ tinh chỉnh màu, khoảng cách, bóng và bo góc; bố cục chính nằm trong meeting-ui.css.
+ */
+:root {
+  /* Toàn bộ ứng dụng dùng một giao diện tối, đồng bộ với phòng họp. */
+  color-scheme: dark;
+  --ink: #f2f3f5;
+  --ink-soft: #c9ccd2;
+  --muted: #9aa0a8;
+  --line: #2f3137;
+  --canvas: #131417;
+  --surface: #1e1f23;
+  --surface-2: #26282d;
+  --hover: #2a2c31;
+  --input-bg: #16171a;
+  --input-readonly: #1b1c20;
+  --placeholder: #6f747d;
+  --accent-text: #8db8ff;
+  --accent: #1769df;
+  --accent-hover: #1257bc;
+  --accent-soft: rgb(23 105 223 / 18%);
+  --danger: #e5484d;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%);
+  --shadow-md: 0 1px 3px rgb(16 24 40 / 6%), 0 8px 24px rgb(16 24 40 / 7%);
+  --shadow-lg: 0 24px 60px rgb(0 0 0 / 35%);
+  --dark-0: #0d0e10;
+  --dark-1: #18191c;
+  --dark-2: #222327;
+  --dark-3: #2c2e33;
+  --dark-line: #34363d;
+  --dark-text: #f2f3f5;
+  --dark-muted: #a1a5ad;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+/* ---------- Nút, ô nhập dùng chung ---------- */
+button,
+.button {
+  border-radius: 10px;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.05s;
+}
+button:active:not(:disabled),
+.button:active {
+  transform: translateY(1px);
+}
+button.primary,
+.button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 1px 2px rgb(23 105 223 / 30%);
+}
+button.primary:hover,
+.button.primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+input,
+select,
+textarea {
+  border-radius: 10px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgb(23 105 223 / 18%);
+  outline: none;
+}
+
+/* ---------- Avatar có màu theo tên ---------- */
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--avatar-bg, var(--accent));
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+}
+.account-menu .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}
+
+/* ---------- Header ứng dụng (trang chủ, tài khoản) ---------- */
+.app-header:not(.dark-header) {
+  height: 64px;
+  min-height: 64px;
+  padding-block: 0;
+  background: rgb(24 25 28 / 85%);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.app-header .brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+.account-menu > summary {
+  border-radius: 999px;
+  padding: 4px 12px 4px 4px;
+  border-color: var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Trang chủ ---------- */
+.dashboard {
+  max-width: 1120px;
+  padding-top: 56px;
+  padding-bottom: 56px;
+}
+.home-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 56px;
+  align-items: start;
+}
+.home-start {
+  display: grid;
+  gap: 36px;
+  padding-top: 12px;
+}
+.home-greeting h1 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.home-greeting p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+.home-launcher {
+  justify-self: start;
+  max-width: none;
+  grid-template-columns: repeat(2, 140px);
+  gap: 28px 32px;
+}
+.launch-action {
+  width: 140px;
+  gap: 12px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 14px;
+}
+.launch-action > span {
+  width: 96px;
+  height: 96px;
+  border-radius: 26px;
+  background: linear-gradient(160deg, #3b86f0, #1769df);
+  box-shadow:
+    0 10px 24px rgb(23 105 223 / 28%),
+    inset 0 1px 0 rgb(255 255 255 / 25%);
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s;
+}
+.launch-action.new-meeting > span {
+  background: linear-gradient(160deg, #ff9a4d, #f2711c);
+  box-shadow:
+    0 10px 24px rgb(242 113 28 / 32%),
+    inset 0 1px 0 rgb(255 255 255 / 25%);
+}
+.launch-action:not(:disabled):hover > span {
+  transform: translateY(-3px);
+}
+.launch-action:hover {
+  color: var(--ink);
+}
+.launch-action svg {
+  width: 38px;
+  height: 38px;
+}
+.launch-action:disabled {
+  opacity: 1;
+  color: #6b7079;
+}
+.launch-action:disabled > span {
+  background: var(--surface-2);
+  color: #6b7079;
+  box-shadow: none;
+}
+.home-agenda {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+}
+.home-clock {
+  position: relative;
+  padding: 36px 24px 32px;
+  background: radial-gradient(
+      120% 140% at 100% 0%,
+      rgb(255 255 255 / 14%),
+      transparent 55%
+    ),
+    linear-gradient(135deg, #1e3a8a 0%, #1769df 100%);
+}
+.home-clock time {
+  font-size: 64px;
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.home-clock p {
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgb(255 255 255 / 82%);
+}
+.meetings-section {
+  padding: 22px 24px 12px;
+}
+.meetings-section h2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+.meetings-section .count {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 12px;
+}
+.meetings-section > .section-heading {
+  padding-bottom: 12px;
+  border-bottom: 0;
+}
+.meetings-section > .section-heading button {
+  font-size: 12px;
+  padding: 6px 12px;
+  min-height: 32px;
+  border-radius: 999px;
+}
+.meeting-card {
+  margin: 0 -12px;
+  padding: 14px 12px;
+  border-top: 1px solid var(--line);
+  border-radius: 12px;
+  transition: background 0.15s;
+}
+.meeting-card:hover {
+  background: var(--hover);
+}
+.meeting-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.meeting-card p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.meeting-card .role-badge {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border: 0;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.meeting-card > .button {
+  min-height: 34px;
+  padding: 6px 22px;
+  border-radius: 999px;
+}
+.meeting-card .copy-invite button {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.empty.card {
+  border: 1px dashed var(--line);
+  box-shadow: none;
+  background: transparent;
+}
+
+/* ---------- Hộp thoại ---------- */
+.form-dialog {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  padding: 28px 28px 24px;
+}
+.form-dialog::backdrop {
+  background: rgb(15 23 42 / 45%);
+  backdrop-filter: blur(3px);
+}
+
+/* ---------- Đăng nhập ---------- */
+.login-form {
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---------- Màn tham gia, phòng chờ, xem trước (nền tối) ---------- */
+.meeting-gate .card,
+.gate-card {
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+}
+.preview-content h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.preview-video {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #26282d, #0d0e10 75%);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 45%);
+}
+.preview-video video {
+  transform: scaleX(-1);
+}
+.preview-name {
+  top: 14px;
+  bottom: auto;
+  left: 14px;
+  background: rgb(0 0 0 / 55%);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+.preview-video .preview-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  z-index: 2;
+}
+.preview-video .preview-controls button {
+  width: 52px;
+  height: 52px;
+  min-height: 52px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0;
+  gap: 0;
+  background: rgb(60 63 70 / 85%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+.preview-video .preview-controls button:hover:not(:disabled) {
+  background: rgb(80 84 92 / 95%);
+}
+.preview-video .preview-controls button[aria-pressed='false'] {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+.preview-video .preview-controls button[aria-pressed='false'] svg {
+  color: #fff;
+}
+.preview-video .preview-controls svg {
+  width: 22px;
+  height: 22px;
+}
+.preview-video-space + .preview-devices,
+.preview-video-space + .small {
+  margin-top: 18px;
+}
+.preview-content > .button-row > .primary {
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+/* ---------- Phòng họp ---------- */
+.meeting-shell {
+  background: var(--dark-1);
+}
+.meeting-header {
+  background: var(--dark-1);
+  border-bottom: 1px solid rgb(255 255 255 / 4%);
+}
+.meeting-header time {
+  font-variant-numeric: tabular-nums;
+  color: var(--dark-muted);
+}
+.video-tile {
+  border-radius: 10px;
+  background: var(--dark-0);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 5%);
+  overflow: hidden;
+}
+.video-tile.is-speaking {
+  box-shadow:
+    inset 0 0 0 3px #22c55e,
+    0 0 0 1px rgb(34 197 94 / 30%);
+}
+.video-placeholder {
+  background: radial-gradient(circle at 50% 45%, #24262b, var(--dark-0) 70%);
+}
+.tile-caption > span:first-child {
+  background: rgb(0 0 0 / 55%);
+  backdrop-filter: blur(6px);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+.tile-caption .role-badge {
+  background: rgb(255 255 255 / 14%);
+  color: #e5e7eb;
+  border: 0;
+  border-radius: 6px;
+}
+.control-bar {
+  background: var(--dark-1);
+  border-top: 1px solid rgb(255 255 255 / 4%);
+}
+.control-bar .toolbar-button {
+  border-radius: 10px;
+}
+.control-bar .toolbar-button:hover:not(:disabled) {
+  background: rgb(255 255 255 / 7%);
+}
+.control-bar .toolbar-button[aria-pressed='true'] {
+  background: rgb(255 255 255 / 9%);
+  box-shadow: none;
+  border-color: transparent;
+}
+/* Mic/camera đang bật là trạng thái bình thường, không tô nền như bảng đang mở. */
+.control-bar .device-control .toolbar-button[aria-pressed='true']:not(:hover) {
+  background: transparent;
+}
+.control-bar .toolbar-label {
+  font-weight: 500;
+  color: #d4d6db;
+}
+.control-bar .leave-control > button,
+.control-bar .leave-control > details > summary {
+  border-radius: 10px;
+  background: var(--danger);
+  box-shadow: 0 4px 14px rgb(229 72 77 / 30%);
+}
+
+/* Bảng bên */
+.side-panel {
+  background: var(--dark-2);
+  border-left: 1px solid var(--dark-line);
+}
+.panel-heading h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.people-list > li {
+  border-radius: 10px;
+  border-bottom: 0;
+  transition: background 0.12s;
+}
+.people-list > li:hover {
+  background: rgb(255 255 255 / 5%);
+}
+.person-line strong {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.person-line small {
+  color: var(--dark-muted);
+}
+.side-panel .role-badge {
+  background: rgb(255 255 255 / 10%);
+  color: #d1d5db;
+  border: 0;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.side-panel button {
+  border-radius: 8px;
+  background: var(--dark-3);
+  border-color: var(--dark-line);
+}
+.side-panel button:hover:not(:disabled) {
+  background: #383a41;
+}
+.side-panel button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.panel-footer {
+  background: var(--dark-2);
+  border-top: 1px solid var(--dark-line);
+}
+.panel-footer button {
+  font-size: 12.5px;
+}
+.chat-compose textarea {
+  background: var(--dark-1);
+  border-color: var(--dark-line);
+  color: var(--dark-text);
+  border-radius: 10px;
+}
+.side-panel .live-badge {
+  background: rgb(34 197 94 / 14%);
+  color: #4ade80;
+  border: 0;
+  border-radius: 999px;
+}
+
+/* Menu và hộp xác nhận trong phòng */
+.meeting-shell .popup-items {
+  background: var(--dark-2);
+  border: 1px solid var(--dark-line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+}
+.meeting-shell .popup-items > button {
+  border-radius: 8px;
+}
+.meeting-shell .modal {
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+}
+.room-notices .notice {
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 760px) {
+  .home-workspace {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .home-greeting h1 {
+    font-size: 24px;
+  }
+  .home-launcher {
+    grid-template-columns: repeat(2, 1fr);
+    justify-self: stretch;
+  }
+  .launch-action {
+    width: auto;
+  }
+  .launch-action > span {
+    width: 80px;
+    height: 80px;
+    border-radius: 22px;
+  }
+  .home-clock time {
+    font-size: 48px;
+  }
+}
+
+/* ---------- Giao diện tối dùng chung cho mọi trang ---------- */
+html,
+body,
+#root {
+  background: var(--canvas);
+  color: var(--ink);
+}
+h1,
+h2,
+h3,
+h4,
+legend,
+label,
+strong {
+  color: inherit;
+}
+.muted,
+small,
+.small {
+  color: var(--muted);
+}
+a {
+  color: var(--accent-text);
+}
+button,
+.button {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--ink);
+}
+button:hover,
+.button:hover {
+  background: var(--hover);
+  box-shadow: none;
+}
+button.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+button[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: rgb(23 105 223 / 45%);
+  color: var(--accent-text);
+}
+button.danger,
+.button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+input:not([type='checkbox'], [type='radio']),
+select,
+textarea {
+  background: var(--input-bg);
+  border-color: var(--line);
+  color: var(--ink);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--placeholder);
+}
+input[readonly] {
+  background: var(--input-readonly);
+  color: var(--ink-soft);
+}
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--accent);
+}
+fieldset {
+  border-color: var(--line);
+}
+.card {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+.notice {
+  background: rgb(229 72 77 / 12%);
+  border-color: rgb(229 72 77 / 35%);
+  color: #ffb4b6;
+}
+.notice.info {
+  background: rgb(23 105 223 / 12%);
+  border-color: rgb(23 105 223 / 35%);
+  color: #b9d3ff;
+}
+.notice.warning {
+  background: rgb(234 179 8 / 12%);
+  border-color: rgb(234 179 8 / 35%);
+  color: #fde68a;
+}
+.count,
+.role-badge {
+  background: rgb(255 255 255 / 9%);
+  color: var(--ink-soft);
+  border-color: transparent;
+}
+.live-badge {
+  background: rgb(34 197 94 / 14%);
+  color: #4ade80;
+}
+.brand {
+  color: var(--ink);
+}
+.brand small {
+  color: var(--muted);
+}
+.popup-items {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+}
+.popup-items > a,
+.popup-items > button {
+  color: var(--ink);
+  background: transparent;
+  border-color: transparent;
+}
+.popup-items > a:hover,
+.popup-items > button:hover {
+  background: var(--hover);
+}
+.account-menu > summary {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+}
+.input-action button,
+.square-icon {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.home-agenda {
+  background: var(--surface);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 35%);
+}
+.launch-action {
+  background: transparent;
+}
+.launch-action:hover {
+  background: transparent;
+}
+.form-dialog {
+  background: var(--surface);
+  color: var(--ink);
+}
+.form-dialog::backdrop {
+  background: rgb(0 0 0 / 60%);
+}
+.login-layout {
+  background: var(--canvas);
+}
+.login-form {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.setting-row input[role='switch']::before {
+  background: #fff;
+}
+
+.login-form .eyebrow {
+  display: block;
+  margin-top: 26px;
+}
+.cohost-picker {
+  border-color: var(--line);
+  border-radius: 12px;
+}
+.input-action button {
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+.meeting-gate,
+.dark-header {
+  background: var(--canvas);
+}
+.meeting-gate {
+  min-height: calc(100dvh - 64px);
+}
+.dark-header {
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---------- Giao diện sáng (nút chuyển ở header) ---------- */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --ink: #111827;
+  --ink-soft: #4b5563;
+  --muted: #6b7280;
+  --line: #e3e6ec;
+  --canvas: #f4f6fa;
+  --surface: #ffffff;
+  --surface-2: #f1f3f7;
+  --hover: #eceff4;
+  --input-bg: #ffffff;
+  --input-readonly: #f4f6f9;
+  --placeholder: #9aa1ad;
+  --accent-soft: #eaf1fd;
+  --accent-text: #1769df;
+  --shadow-lg: 0 24px 60px rgb(15 23 42 / 18%);
+  /* Bề mặt phòng họp; ô video vẫn giữ nền đen (--dark-0). */
+  --dark-1: #f4f6fa;
+  --dark-2: #ffffff;
+  --dark-3: #f1f3f7;
+  --dark-line: #e3e6ec;
+  --dark-text: #111827;
+  --dark-muted: #6b7280;
+}
+[data-theme='light'] .notice {
+  background: #fff1f1;
+  border-color: #fecaca;
+  color: #b42318;
+}
+[data-theme='light'] .notice.info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+[data-theme='light'] .notice.warning {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+[data-theme='light'] .count,
+[data-theme='light'] .role-badge {
+  background: #eef0f4;
+}
+[data-theme='light'] .live-badge,
+[data-theme='light'] .side-panel .live-badge {
+  background: #dcfce7;
+  color: #15803d;
+}
+[data-theme='light'] .app-header:not(.dark-header) {
+  background: rgb(255 255 255 / 85%);
+}
+[data-theme='light'] .home-agenda {
+  box-shadow: var(--shadow-md);
+}
+[data-theme='light'] .form-dialog::backdrop {
+  background: rgb(15 23 42 / 45%);
+}
+[data-theme='light'] .launch-action:disabled > span {
+  background: #e7eaf0;
+  color: #a6adba;
+}
+[data-theme='light'] .launch-action:disabled {
+  color: #9aa1ad;
+}
+[data-theme='light'] .setting-row input[role='switch'] {
+  background: #cbd0d8;
+}
+
+/* Phòng họp và các màn trước khi vào */
+[data-theme='light'] .meeting-shell,
+[data-theme='light'] .meeting-header,
+[data-theme='light'] .video-stage,
+[data-theme='light'] .control-bar,
+[data-theme='light'] .preview-page,
+[data-theme='light'] .login-layout,
+[data-theme='light'] .meeting-gate,
+[data-theme='light'] .dark-header {
+  background: var(--canvas);
+  color: var(--ink);
+  border-color: var(--line);
+}
+[data-theme='light'] .meeting-header,
+[data-theme='light'] .control-bar {
+  background: var(--surface);
+}
+[data-theme='light'] .meeting-header {
+  border-bottom: 1px solid var(--line);
+}
+[data-theme='light'] .control-bar {
+  border-top: 1px solid var(--line);
+}
+[data-theme='light'] .meeting-header time,
+[data-theme='light'] .preview-content > p,
+[data-theme='light'] .side-panel p,
+[data-theme='light'] .side-panel small,
+[data-theme='light'] .meeting-shell .modal p,
+[data-theme='light'] .gate-card p,
+[data-theme='light'] .gate-card .muted,
+[data-theme='light'] .gate-card .eyebrow,
+[data-theme='light'] .gate-card .status-online {
+  color: var(--muted);
+}
+[data-theme='light'] .dark-header .brand,
+[data-theme='light'] .preview-page > .brand,
+[data-theme='light'] .meeting-shell .popup-menu > summary,
+[data-theme='light'] .chat-message p,
+[data-theme='light'] .panel-close,
+[data-theme='light'] .control-bar .toolbar-button,
+[data-theme='light'] .control-bar .toolbar-label {
+  color: var(--ink);
+}
+[data-theme='light'] .control-bar .toolbar-button:hover:not(:disabled) {
+  background: rgb(15 23 42 / 6%);
+}
+[data-theme='light'] .control-bar .toolbar-button[aria-pressed='true'] {
+  background: rgb(15 23 42 / 7%);
+  color: var(--ink);
+}
+[data-theme='light'] .unread-dot {
+  border-color: var(--surface);
+}
+[data-theme='light'] .meeting-shell .popup-items,
+[data-theme='light'] .extra-actions,
+[data-theme='light'] .person-actions,
+[data-theme='light'] .meeting-shell .modal,
+[data-theme='light'] .gate-card {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+}
+[data-theme='light'] .meeting-shell .popup-items > button {
+  color: var(--ink);
+}
+[data-theme='light'] .meeting-shell .popup-items > button:hover {
+  background: var(--hover);
+}
+[data-theme='light'] .side-panel button,
+[data-theme='light'] .person-actions > button,
+[data-theme='light'] .meeting-shell .person-actions summary,
+[data-theme='light'] .room-notices button,
+[data-theme='light'] .meeting-shell .modal button:not(.danger),
+[data-theme='light'] .gate-card button:not(.primary),
+[data-theme='light'] .gate-card .button:not(.primary),
+[data-theme='light'] .preview-content .button-row > button:not(.primary) {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--ink);
+}
+[data-theme='light'] .side-panel button:hover:not(:disabled) {
+  background: var(--hover);
+}
+[data-theme='light'] .side-panel button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+[data-theme='light'] .side-panel .role-badge {
+  background: #eef0f4;
+  color: var(--ink-soft);
+}
+[data-theme='light'] .people-list > li:hover {
+  background: rgb(15 23 42 / 4%);
+}
+[data-theme='light'] .meeting-info input,
+[data-theme='light'] .device-picker select,
+[data-theme='light'] .chat-compose textarea,
+[data-theme='light'] .preview-display-name input,
+[data-theme='light'] .preview-display-name input[readonly],
+[data-theme='light'] .gate-card input {
+  background: var(--input-bg);
+  border-color: var(--line);
+  color: var(--ink);
+}
+[data-theme='light'] .panel-heading,
+[data-theme='light'] .panel-footer,
+[data-theme='light'] .chat-compose,
+[data-theme='light'] .setting-row {
+  border-color: var(--line);
+}
+[data-theme='light'] .side-panel .chat-send:disabled {
+  background: #e5e7eb;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+}
+[data-theme='light'] .preview-content .notice {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+[data-theme='light'] .gate-spinner {
+  border-color: var(--line);
+  border-top-color: var(--accent);
+}
+
+/* Nút chuyển sáng/tối */
+.theme-toggle {
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  flex: none;
+}
+.theme-toggle:hover {
+  background: var(--hover);
+}
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.floating-theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 30;
+}
+.meeting-header .theme-toggle {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  background: transparent;
+  border-color: transparent;
+}
