@@ -981,3 +981,28 @@ fieldset {
   background: transparent;
   border-color: transparent;
 }
+
+[data-theme='light'] .side-panel {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+}
+[data-theme='light'] .side-panel h2,
+[data-theme='light'] .side-panel h3,
+[data-theme='light'] .side-panel strong,
+[data-theme='light'] .side-panel label,
+[data-theme='light'] .setting-row,
+[data-theme='light'] .setting-row span {
+  color: var(--ink);
+}
+[data-theme='light'] .room-brand {
+  color: var(--muted);
+}
+/* Nhãn tên nằm trên video nên luôn là chữ sáng trên nền tối. */
+[data-theme='light'] .tile-caption,
+[data-theme='light'] .tile-caption * {
+  color: #fff;
+}
+[data-theme='light'] .tile-caption .role-badge {
+  background: rgb(255 255 255 / 18%);
+}
