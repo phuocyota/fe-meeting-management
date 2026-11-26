@@ -8,7 +8,7 @@ Tài liệu cho người dựng FE (`fe-meeting-management`, React 19 + Vite, Ja
 - **LiveKit**: chỉ lo media (âm thanh, hình ảnh, chia sẻ màn hình) và chat. FE kết nối bằng `serverUrl` + `token` do API trả về.
 - **Xác thực**: hệ thống có tài khoản riêng (bảng `users`), không dùng CRM. Có hai loại token, đều gửi qua `Authorization: Bearer <token>`:
   - **Token tài khoản**: lấy từ `POST /auth/login`. Dùng được mọi API.
-  - **Token khách**: người không có tài khoản nhập tên ở trình duyệt, gọi `POST /meetings/:id/guest` để nhận. Chỉ dùng được cho đúng cuộc họp đó và chỉ các API ghi "khách: có" ở mục 4. Gọi API khác thì nhận 403.
+  - **Token khách**: người không có tài khoản nhập tên ở trình duyệt, gọi `POST /meetings/:id/guest` để nhận. Chỉ dùng được cho đúng cuộc họp đó, với các API ghi "khách: có" ở mục 4.3 và các API admin ở mục 4.4 (khi khách đang là cohost). Gọi API khác thì nhận 403.
 - Thư viện nên dùng: `livekit-client` và `@livekit/components-react` (hoặc chỉ `livekit-client`).
 - Token LiveKit **không** có quyền admin. Nút admin phải gọi API, không gọi LiveKit trực tiếp.
 
@@ -17,7 +17,7 @@ Tài liệu cho người dựng FE (`fe-meeting-management`, React 19 + Vite, Ja
 | role | Là admin | Ghi chú |
 | --- | --- | --- |
 | `host` | Có | Chủ trì, chỉ có một. Không ai mời ra, tắt mic hay khóa phát được chủ trì. Chuyển được quyền chủ trì cho người khác. |
-| `cohost` | Có | Đồng chủ trì. Phải thu hồi quyền trước khi mời ra hoặc khóa phát. |
+| `cohost` | Có | Đồng chủ trì. Là tài khoản hoặc khách. Phải thu hồi quyền trước khi mời ra hoặc khóa phát. |
 | `participant` | Không | Người tham gia thường. Bị giới hạn bởi cài đặt phòng. |
 
 Vai trò của mỗi người trong phòng nằm ở **participant metadata** `{"role":"host"|"cohost"|"participant"}` (parse `participant.metadata`).
@@ -129,7 +129,7 @@ Hệ thống không có phân quyền tài khoản: mọi tài khoản đã đă
   "lobbyCount": 2 }                  // null nếu không phải admin
 ```
 
-### 4.4. Chỉ admin (host/cohost). Người khác nhận 403. Khách không bao giờ là admin.
+### 4.4. Chỉ admin (host/cohost). Người khác nhận 403. Khách đang là cohost gọi được bằng token khách (trừ chuyển chủ trì).
 
 | Method | Path | Body | Ghi chú |
 | --- | --- | --- | --- |
@@ -141,7 +141,7 @@ Hệ thống không có phân quyền tài khoản: mọi tài khoản đã đă
 | `POST` | `/meetings/:id/members/:userId/mute` | `{ audio?: true, video?: false }` | Tắt mic/camera **một lần**; người đó tự bật lại được |
 | `POST` | `/meetings/:id/mute-all` | `{ audio?: true, video?: false }` | `{ participants, tracks }`; không tắt admin |
 | `PUT` | `/meetings/:id/members/:userId/publish` | `{ allowed: boolean }` | Khóa/mở quyền phát của một người (giữ cả khi người đó vào lại) |
-| `PUT` | `/meetings/:id/cohosts/:userId` | | Cấp đồng chủ trì (chỉ cho tài khoản; khách: 409) |
+| `PUT` | `/meetings/:id/cohosts/:userId` | | Cấp đồng chủ trì cho tài khoản, hoặc khách đã có trong cuộc họp (đang chờ thì vào thẳng) |
 | `DELETE` | `/meetings/:id/cohosts/:userId` | | Thu hồi đồng chủ trì |
 | `DELETE` | `/meetings/:id/members/:userId/hand` | | Hạ tay giúp |
 | `DELETE` | `/meetings/:id/hands` | | `{ lowered }` |
@@ -161,7 +161,7 @@ Hệ thống không có phân quyền tài khoản: mọi tài khoản đã đă
 ## 5. Gợi ý UI cho admin
 
 - Huy hiệu số người chờ (`lobbyCount`), mở ra danh sách chờ với nút Duyệt / Từ chối / Duyệt tất cả.
-- Menu cho từng người: Tắt mic, Tắt camera, Khóa phát / Mở phát, Cấp / Thu hồi đồng chủ trì, Hạ tay, Mời ra, Chuyển chủ trì (chỉ host thấy). Ẩn các thao tác không hợp lệ: không có thao tác nào trên host; với cohost, phải thu hồi quyền trước khi mời ra hoặc khóa phát; với khách (`isGuest`), ẩn Cấp đồng chủ trì và Chuyển chủ trì.
+- Menu cho từng người: Tắt mic, Tắt camera, Khóa phát / Mở phát, Cấp / Thu hồi đồng chủ trì, Hạ tay, Mời ra, Chuyển chủ trì (chỉ host thấy). Ẩn các thao tác không hợp lệ: không có thao tác nào trên host; với cohost, phải thu hồi quyền trước khi mời ra hoặc khóa phát; với khách (`isGuest`), ẩn Chuyển chủ trì (khách vẫn được cấp đồng chủ trì).
 - Phòng chờ hiển thị tên (`name`) và nhãn "Khách" nếu `isGuest`.
 - Bảng cài đặt: Khóa phòng, Phòng chờ, Cho phép mic / camera / chia sẻ màn hình / chat.
 - Nút "Tắt mic tất cả", "Hạ tay tất cả", "Kết thúc cuộc họp".

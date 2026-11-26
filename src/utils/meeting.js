@@ -15,7 +15,7 @@ export function participantActions(myRole, myId, participant) {
   )
     return []
   const actions = ['mute', 'camera']
-  if (!participant.isGuest) actions.push('cohost')
+  actions.push('cohost')
   if (participant.handRaisedAt) actions.push('hand')
   if (participant.role !== 'cohost') actions.push('publish', 'kick')
   if (myRole === 'host' && !participant.isGuest) actions.push('host')
