@@ -593,7 +593,7 @@ export default function MeetingRoom({
             <CopyInvite id={id} />
           </PopupMenu>
           <span className="room-brand">
-            ICHI <b>MEET</b>
+            Ichi <b>Meeting</b>
           </span>
           <h1>{view.meeting.title}</h1>
         </div>

@@ -353,3 +353,32 @@ button[aria-pressed='true'] {
   padding: 20vh 20px;
   text-align: center;
 }
+
+/* Logo ICHI SKILL: ảnh tròn nền trắng, thay ô màu ở mọi nơi dùng .brand-mark. */
+.brand .brand-mark.brand-logo {
+  background: #fff;
+  border-radius: 50%;
+  object-fit: cover;
+  padding: 0;
+}
+
+/* Logo Di-ichi đứng cạnh logo ICHI SKILL, cao bằng logo tròn. */
+.brand .brand-partner {
+  height: 40px;
+  width: auto;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+.app-header .brand .brand-partner {
+  height: 34px;
+}
+@media (max-width: 760px) {
+  .meeting-header .brand .brand-partner {
+    display: none;
+  }
+}
+@media (max-width: 420px) {
+  .brand .brand-partner {
+    display: none;
+  }
+}

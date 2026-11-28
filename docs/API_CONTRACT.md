@@ -25,16 +25,19 @@ Vai trò của mỗi người trong phòng nằm ở **participant metadata** `{
 ## 3. Luồng màn hình
 
 0. **Đăng nhập** (`/login`): tên đăng nhập + mật khẩu → `POST /auth/login`. Lưu `accessToken`, `expiresAt` và `user`. Gặp 401 ở bất kỳ API nào thì xoá phiên và quay về `/login`.
-1. **Danh sách**: `GET /meetings` trả các cuộc họp đang diễn ra mà tôi đã được vào. Nút "Tạo cuộc họp" gọi `POST /meetings`.
+1. **Danh sách**: `GET /meetings` trả các cuộc họp đang diễn ra hoặc đã lên lịch mà tôi đã được vào (cuộc họp đã lên lịch có `scheduledAt`; nên hiển thị giờ hẹn). Nút "Tạo cuộc họp" gọi `POST /meetings`, nút "Lên lịch" gọi `POST /meetings/schedule`.
 2. **Tạo cuộc họp**: `POST /meetings`, kết quả giống một lần `join` thành công (có `token`), nên vào phòng ngay.
+   - **Lên lịch họp**: `POST /meetings/schedule { title, scheduledAt, maxParticipants?, coHostIds? }` trả `MeetingView` (không có token). Chia sẻ link `/meeting/:id` cho người tham gia. Cuộc họp đã lên lịch **không có phòng chờ**: tới giờ hẹn ai có link (tài khoản hoặc khách) cũng vào thẳng. Trước giờ hẹn chỉ chủ trì/đồng chủ trì vào được để chuẩn bị.
 3. **Vào cuộc họp qua link** `/meeting/:id`:
-   - **Chưa đăng nhập**: hiện hai lựa chọn: "Đăng nhập" (về `/login` rồi quay lại link) hoặc "Tham gia với tư cách khách" (ô nhập tên). Khách gọi `POST /meetings/:id/guest { name }`, nhận `guest.accessToken` cùng `status`. Lưu token khách theo từng cuộc họp (ví dụ `sessionStorage` key `guest:<meetingId>`). Từ đó khách dùng token này để gọi lại `join` (polling phòng chờ) và các API khác cho khách. Nếu `status: "locked"` thì không có token (`guest: null`).
+   - **Chưa đăng nhập**: hiện hai lựa chọn: "Đăng nhập" (về `/login` rồi quay lại link) hoặc "Tham gia với tư cách khách" (ô nhập tên). Khách gọi `POST /meetings/:id/guest { name }`, nhận `guest.accessToken` cùng `status`. Lưu token khách theo từng cuộc họp (ví dụ `sessionStorage` key `guest:<meetingId>`). Từ đó khách dùng token này để gọi lại `join` (polling phòng chờ) và các API khác cho khách. Nếu `status: "locked"` hoặc `"not_started"` thì không có token (`guest: null`).
+   - **Link có tên** `/meeting/:id?name=<tên>` (gửi từ hệ thống ngoài, nhớ `encodeURIComponent`): chưa đăng nhập thì FE tự gọi `POST /meetings/:id/guest { name }`, không hiện nút chọn hay ô nhập tên, và bỏ qua màn kiểm tra thiết bị (vào phòng với mic/camera tắt). Phòng chờ và khóa phòng vẫn áp dụng như khách thường; cuộc họp đã lên lịch thì tới giờ vào thẳng. Đã đăng nhập thì bỏ qua `name`.
    - **Đã đăng nhập**, hoặc khách đã có token: gọi `POST /meetings/:id/join` rồi xử lý theo `status`:
    - `admitted`: kết nối LiveKit bằng `serverUrl` và `token`.
    - `pending`: màn hình phòng chờ, **gọi lại `join` mỗi 3–5 giây** cho tới khi đổi trạng thái.
    - `denied`: báo "Chủ trì đã từ chối".
    - `kicked`: báo "Bạn đã bị mời ra"; chỉ vào lại được khi admin duyệt lại.
    - `locked`: báo "Cuộc họp đã bị khóa". Có thể cho người dùng thử lại sau.
+   - `not_started`: cuộc họp đã lên lịch nhưng chưa tới giờ. Hiện giờ bắt đầu (`meeting.scheduledAt`) và đếm ngược; tới giờ thì gọi lại `join` (hoặc `guest` với khách). Đồng hồ máy người dùng có thể lệch: nếu vẫn nhận `not_started` thì thử lại sau vài giây.
    - HTTP 404 kèm `message` "Cuộc họp đã kết thúc" hoặc "Cuộc họp không tồn tại".
    - Token khách hết hạn (401): xoá token khách và cho nhập tên lại. Người nhập lại là khách mới, phải được duyệt lại.
 4. **Trong phòng**: lưới video, thanh điều khiển (mic, camera, chia sẻ màn hình, giơ tay, chat, rời phòng). Admin có thêm bảng điều khiển (mục 5).
@@ -65,6 +68,8 @@ Lỗi trả về theo định dạng của NestJS: `{ "statusCode": 403, "messag
     "allowScreenShare": true,
     "allowChat": true
   },
+  "scheduledAt": "ISO|null", // giờ bắt đầu đã hẹn; null nếu họp ngay
+  "joinUrl": "https://<fe>/meeting/<id>|null", // link chia sẻ; khách thêm ?name=<tên> để vào thẳng
   "createdAt": "ISO",
   "endedAt": null,
   "myRole": "host", // | "cohost" | "participant" | null
@@ -110,6 +115,7 @@ Hệ thống không có phân quyền tài khoản: mọi tài khoản đã đă
 | --- | --- | --- | --- | --- |
 | `POST` | `/meetings/:id/guest` (công khai) | | `{ name }` | JoinResult + `guest: { id, name, accessToken, expiresAt } \| null` |
 | `POST` | `/meetings` | không | `{ title, waitingRoom?, maxParticipants?, coHostIds? }` (`coHostIds` là id tài khoản) | JoinResult (admitted) |
+| `POST` | `/meetings/schedule` | không | `{ title, scheduledAt, maxParticipants?, coHostIds? }`. `scheduledAt` là ISO 8601 có múi giờ (ví dụ `2026-12-01T09:00:00+07:00`), phải ở tương lai, tối đa 1 năm; không nhận `waitingRoom` | `MeetingView` (`waitingRoom: false`, có `scheduledAt`). Sai giờ: 400 |
 | `GET` | `/meetings` | không | | `MeetingView[]` |
 | `GET` | `/meetings/:id` | có | | `MeetingView` |
 | `POST` | `/meetings/:id/join` | có | | JoinResult |
@@ -121,7 +127,7 @@ Hệ thống không có phân quyền tài khoản: mọi tài khoản đã đă
 // JoinResult
 { "status": "admitted", "meeting": MeetingView, "serverUrl": "wss://...",
   "token": "jwt", "expiresAt": "ISO", "role": "participant" }
-{ "status": "pending" /* | denied | kicked | locked */, "meeting": MeetingView }
+{ "status": "pending" /* | denied | kicked | locked | not_started */, "meeting": MeetingView }
 
 // RoomView
 { "meeting": MeetingView,
@@ -153,6 +159,7 @@ Hệ thống không có phân quyền tài khoản: mọi tài khoản đã đă
 
 - `locked: true`: người **chưa từng** xin vào nhận `status: "locked"`. Người đang chờ vẫn duyệt được, thành viên cũ vẫn vào lại được.
 - `waitingRoom: false`: duyệt luôn mọi người đang chờ; `admitted` trả danh sách userId vừa được duyệt.
+- Cuộc họp đã lên lịch mặc định không có phòng chờ; admin vẫn bật lại `waitingRoom` hoặc `locked` được nếu muốn chặn người vào.
 - `allowMicrophone` / `allowCamera` / `allowScreenShare`: đặt `false` thì người tham gia thường **không bật được** nguồn đó. Track đang phát bị tắt luôn. Admin không bị ảnh hưởng.
 - `allowChat: false`: người tham gia thường mất quyền gửi data, nên không gửi được chat.
 
@@ -192,5 +199,6 @@ Không qua topic:
 
 - Chưa có avatar. Chưa có quản lý tài khoản nâng cao (khoá/xoá tài khoản, phân quyền, quên mật khẩu).
 - Khách không có tài khoản: mỗi lần nhập tên lại là một khách mới.
-- Chưa có lên lịch họp, danh sách mời, điểm danh, ghi hình, lưu chat.
+- Lên lịch họp chưa có đổi giờ hẹn, nhắc lịch hay danh sách mời: ai có link cũng vào được khi tới giờ.
+- Chưa có điểm danh, ghi hình, lưu chat.
 - Không có webhook hay socket riêng: mọi realtime đi qua LiveKit; phòng chờ dùng polling `join`.

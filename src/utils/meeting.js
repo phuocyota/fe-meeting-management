@@ -57,3 +57,17 @@ export function meetingErrorStatus(error) {
   if (error.status !== 404) return 'error'
   return /không tồn tại/i.test(error.message) ? 'missing' : 'ended'
 }
+
+/** Thời điểm hiển thị cho cuộc họp đã lên lịch. */
+export function formatSchedule(value) {
+  const date = new Date(value)
+  return Number.isNaN(+date)
+    ? ''
+    : date.toLocaleString('vi-VN', { dateStyle: 'full', timeStyle: 'short' })
+}
+
+/** Chờ tới giờ hẹn (thêm 1 giây cho lệch đồng hồ), ít nhất 3 giây, tối đa 5 phút mỗi lần. */
+export function untilStart(scheduledAt) {
+  const delay = Date.parse(scheduledAt) - Date.now() + 1000
+  return Math.min(Math.max(Number.isFinite(delay) ? delay : 0, 3000), 300000)
+}

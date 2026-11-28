@@ -80,7 +80,7 @@
     content: attr(data-label);
   }
 }
-/* ICHI MEET desktop meeting surfaces. */
+/* Ichi Meeting desktop meeting surfaces. */
 :root {
   --brand: #1769df;
 }

@@ -6,7 +6,11 @@ import { useAuth } from '../auth/context'
 import { Header, Notice } from '../components/Common'
 import MeetingRoom from '../components/MeetingRoom'
 import MeetingPreview from '../components/MeetingPreview'
-import { meetingErrorStatus } from '../utils/meeting'
+import {
+  formatSchedule,
+  meetingErrorStatus,
+  untilStart,
+} from '../utils/meeting'
 
 const statusCopy = {
   missing: ['Không tìm thấy cuộc họp', 'Kiểm tra lại link hoặc mã cuộc họp.'],
@@ -21,6 +25,10 @@ const statusCopy = {
   kicked: [
     'Bạn đã bị mời ra',
     'Bạn chỉ có thể vào lại khi quản trị viên duyệt lại yêu cầu.',
+  ],
+  not_started: [
+    'Cuộc họp chưa bắt đầu',
+    'Bạn sẽ được vào tự động khi tới giờ hẹn.',
   ],
   locked: [
     'Cuộc họp đã bị khóa',
@@ -40,14 +48,25 @@ const statusCopy = {
 
 export default function MeetingPage({ createdAdmission, onAdmissionUsed }) {
   const { id } = useParams()
-  const { api, session, guestAdmission } = useAuth()
+  const { api, session, guestAdmission, autoEnter } = useAuth()
   const [initial] = useState(
     () =>
       guestAdmission ||
       (createdAdmission?.meeting?.id === id ? createdAdmission : null),
   )
   const [admission, setAdmission] = useState(initial)
-  const [mediaChoices, setMediaChoices] = useState(null)
+  // Khách vào từ link có tên: không qua màn kiểm tra thiết bị, mic/camera tắt (bật lại trong phòng).
+  const [mediaChoices, setMediaChoices] = useState(() =>
+    autoEnter
+      ? {
+          audio: false,
+          video: false,
+          audioDevice: '',
+          videoDevice: '',
+          generation: 0,
+        }
+      : null,
+  )
   const [status, setStatus] = useState(initial?.status || 'loading')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -134,6 +153,15 @@ export default function MeetingPage({ createdAdmission, onAdmissionUsed }) {
   }, [status, admission, busy, join])
 
   useEffect(() => {
+    if (status !== 'not_started' || busy) return
+    const timer = setTimeout(
+      () => join(),
+      untilStart(admission?.meeting?.scheduledAt),
+    )
+    return () => clearTimeout(timer)
+  }, [status, admission, busy, join])
+
+  useEffect(() => {
     if (status !== 'admitted' || busy) return
     const expires = Date.parse(admission?.expiresAt)
     if (!Number.isFinite(expires)) return
@@ -186,10 +214,10 @@ export default function MeetingPage({ createdAdmission, onAdmissionUsed }) {
               ? 'ended'
               : meetingErrorStatus(error)
             : error.status === 403
-              ? 'error'
-              : reason === DisconnectReason.PARTICIPANT_REMOVED
-                ? 'kicked'
-                : 'disconnected',
+            ? 'error'
+            : reason === DisconnectReason.PARTICIPANT_REMOVED
+            ? 'kicked'
+            : 'disconnected',
         )
       }
     },
@@ -324,21 +352,27 @@ export default function MeetingPage({ createdAdmission, onAdmissionUsed }) {
       <main className="meeting-gate">
         <div className="card gate-card">
           <span
-            className={`gate-symbol ${status === 'pending' || status === 'loading' ? 'gate-spinner' : ''}`}
+            className={`gate-symbol ${
+              status === 'pending' || status === 'loading' ? 'gate-spinner' : ''
+            }`}
             aria-hidden="true"
           >
             {status === 'pending'
               ? '◷'
               : status === 'ended' || status === 'left'
-                ? '✓'
-                : '◈'}
+              ? '✓'
+              : '◈'}
           </span>
           {admission?.meeting?.title && (
             <span className="eyebrow">{admission.meeting.title}</span>
           )}
           <h1>{title}</h1>
           <p className={status === 'pending' ? 'gate-wait-message' : undefined}>
-            {description}
+            {status === 'not_started' && admission?.meeting?.scheduledAt
+              ? `Cuộc họp bắt đầu lúc ${formatSchedule(
+                  admission.meeting.scheduledAt,
+                )}. ${description}`
+              : description}
           </p>
           <Notice>{error}</Notice>
           {status === 'pending' && (

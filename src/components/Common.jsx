@@ -110,11 +110,10 @@ export function Brand() {
   const { session } = useAuth()
   return (
     <Link className="brand" to={session ? '/' : '/login'}>
-      <span className="brand-mark" aria-hidden="true">
-        ◈
-      </span>
+      <img className="brand-mark brand-logo" src="/icon-192.png" alt="" />
+      <img className="brand-partner" src="/di-ichi-logo.png" alt="Di-ichi" />
       <span>
-        ICHI <b>MEET</b>
+        Ichi <b>Meeting</b>
         <small>KHÔNG GIAN KẾT NỐI</small>
       </span>
     </Link>
